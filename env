@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#-*- coding: utf-8 -*-
+
+ZIP_URL=$1
+USER_PROFILE=$HOME/.bash_profile
+
+if [ -n "$ZIP_URL" ];
+then
+	if [ -z "$(which wget)" ];
+	then
+		echo -e '\033[33;40mYour should install \033[31;40mwget\033[33;40m firstly!\033[0m'
+		exit -1
+	fi
+	wget "$ZIP_URL"
+	ZIP_NAME=$(basename $ZIP_URL)
+	unzip -o $ZIP_NAME
+	ENV_PATH="export PATH=\$PATH:$PWD/flutter/bin"
+	cat $USER_PROFILE | grep -q "$ENV_PATH"
+	if [ $? -eq 0 ];
+	then
+		echo "Alread Done, Don't need add again!"
+	else 
+		echo "# Google Flutter SDK EVN CONFIG" >> $USER_PROFILE
+		echo $ENV_PATH >> $USER_PROFILE
+	fi
+	source $USER_PROFILE
+	
+	# test fluttter configure successfully!
+	flutter doctor
+
+	if [ $? -eq 0  -a -f $ZIP_NAME ];
+	then
+		rm -f $ZIP_NAME
+	fi
+	source $USER_PROFILE
+	flutter create --project-name flutter_demo -t app flutter_demo
+	SIMULATOR_UDID=$(flutter devices | grep simulator | cut -d '•' -f 2) 
+	if [ -n $SIMULATOR_UDID ];
+	then
+		cd flutter_demo
+		flutter run -d $SIMULATOR_UDID
+	fi
+else
+	echo ''
+	echo 'Usage: '
+	echo '    $ source ./env flutter_sdk_download_url'
+	echo ''
+	echo 'You should provide the Flutter SDK zip download link on this page: '
+	echo -e '    \033[33;40mhttps://flutter.dev/docs/get-started/install/macos\033[0m'
+fi
