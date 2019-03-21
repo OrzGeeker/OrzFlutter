@@ -11,8 +11,12 @@ then
 		echo -e '\033[33;40mYour should install \033[31;40mwget\033[33;40m firstly!\033[0m'
 		exit -1
 	fi
-	wget "$ZIP_URL"
 	ZIP_NAME=$(basename $ZIP_URL)
+	if [ -e $ZIP_NAME ];
+	then
+		rm -f $ZIP_NAME
+	fi
+	wget "$ZIP_URL"
 	unzip -o $ZIP_NAME
 	ENV_PATH="export PATH=\$PATH:$PWD/flutter/bin"
 	cat $USER_PROFILE | grep -q "$ENV_PATH"
